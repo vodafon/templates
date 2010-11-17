@@ -88,6 +88,9 @@ run 'rails generate mongoid:config'
 puts "creating nifty app layout"
 run 'rails generate nifty:layout'
 
+puts "run simple_form:install"
+run 'rails generate simple_form:install'
+
 puts "modifying 'config/application.rb' file for Mongoid..."
 gsub_file 'config/application.rb', /require 'rails\/all'/ do
 <<-RUBY
