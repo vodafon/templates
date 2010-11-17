@@ -41,6 +41,7 @@ run 'rm public/index.html'
 run 'rm public/favicon.ico'
 run 'rm public/images/rails.png'
 run 'rm README'
+run 'rm app/views/layouts/application.html.erb'
 run 'touch README'
 
 puts "banning spiders from your site by changing robots.txt..."
@@ -64,7 +65,7 @@ end
 # jQuery Option
 #----------------------------------------------------------------------------
 if jquery_flag
-  gem 'jquery-rails', '0.1.3'
+  gem 'jquery-rails'
 end
 
 #----------------------------------------------------------------------------
@@ -73,14 +74,19 @@ end
 puts "setting up Gemfile for Mongoid..."
 gsub_file 'Gemfile', /gem \'sqlite3-ruby/, '# gem \'sqlite3-ruby'
 append_file 'Gemfile', "\n# Bundle gems needed for Mongoid\n"
-gem "mongoid", "2.0.0.beta.19"
+gem "mongoid", "2.0.0.beta.20"
 gem 'bson_ext'
+gem 'simple_form'
+gem 'nifty-generators'
 
 puts "installing Mongoid gems (takes a few minutes!)..."
 run 'bundle install'
 
 puts "creating 'config/mongoid.yml' Mongoid configuration file..."
 run 'rails generate mongoid:config'
+
+puts "creating nifty app layout"
+run 'rails generate nifty:layout'
 
 puts "modifying 'config/application.rb' file for Mongoid..."
 gsub_file 'config/application.rb', /require 'rails\/all'/ do
