@@ -54,11 +54,9 @@ gsub_file 'public/robots.txt', /# Disallow/, 'Disallow'
 if haml_flag
   puts "setting up Gemfile for Haml..."
   append_file 'Gemfile', "\n# Bundle gems needed for Haml\n"
-  gem 'haml', '3.0.18'
-  gem 'haml-rails', '0.2', :group => :development
+  gem 'haml'
+  gem 'haml-rails', :group => :development
   # the following gems are used to generate Devise views for Haml
-  gem 'hpricot', '0.8.2', :group => :development
-  gem 'ruby_parser', '2.0.5', :group => :development
 end
 
 #----------------------------------------------------------------------------
@@ -86,7 +84,11 @@ puts "creating 'config/mongoid.yml' Mongoid configuration file..."
 run 'rails generate mongoid:config'
 
 puts "creating nifty app layout"
+if haml_flag
+run 'rails generate nifty:layout --haml'
+else
 run 'rails generate nifty:layout'
+end
 
 puts "run simple_form:install"
 run 'rails generate simple_form:install'
@@ -153,5 +155,44 @@ gsub_file 'config/routes.rb', /get \"home\/index\"/, 'root :to => "home#index"'
 puts "checking everything into git..."
 git :add => '.'
 git :commit => "-am 'modified Rails app to use Mongoid'"
+
+puts "adding blueprint-css in app"
+
+run 'git clone git://github.com/joshuaclayton/blueprint-css.git'
+run 'cp -R blueprint-css/blueprint public/stylesheets/'
+run 'rm -Rf blueprint-css'
+
+if haml_flag
+gsub_file 'app/views/layouts/application.html.haml', /= stylesheet_link_tag "application"/ do
+<<-RUBY
+       %link{:href => "/stylesheets/blueprint/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+
+       %link{:href => "/stylesheets/blueprint/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
+
+       %link{:href => "/stylesheets/blueprint/plugins/buttons/screen.css", :rel => "stylesheet", :type => "text/css"}
+
+       %link{:href => "/stylesheets/blueprint/plugins/fancy-type/screen.css", :rel => "stylesheet", :type => "text/css"}
+
+        /[if lt IE 8]
+       %link{:href => "/stylesheets/blueprint/ie.css", :rel => "stylesheet", :type => "text/css"}
+
+    = stylesheet_link_tag "application"
+RUBY
+end
+gsub_file 'app/views/layouts/application.html.haml', '= yield(:title) || "Untitled"', '= content_for?(:title) ? yield(:title) : "Untitled"'
+else
+gsub_file 'app/views/layouts/application.html.erb', /<%= stylesheet_link_tag "application" %>/ do
+<<-RUBY
+<link rel="stylesheet" href="/stylesheets/blueprint/screen.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="/stylesheets/blueprint/print.css" type="text/css" media="print">
+<!--[if lt IE 8]>
+  <link rel="stylesheet" href="/stylesheets/blueprint/ie.css" type="text/css" media="screen, projection">
+  <![endif]-->
+<link rel="stylesheet" href="/stylesheets/blueprint/plugins/buttons/screen.css" type="text/css">
+<link rel="stylesheet" href="/stylesheets/blueprint/plugins/fancy-type/screen.css" type="text/css">
+<%= stylesheet_link_tag "application" %>
+RUBY
+end
+end
 
 puts "Done setting up your Rails app with Mongoid."
