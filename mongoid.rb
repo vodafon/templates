@@ -16,6 +16,11 @@ else
   jquery_flag = false
 end
 
+if yes?('Would you like to use Blueprintcss? (yes/no)')
+  blueprint_flag = true
+else
+  blueprint_flag = false
+end
 
 #----------------------------------------------------------------------------
 # Set up git
@@ -70,9 +75,9 @@ end
 # Set up Mongoid
 #----------------------------------------------------------------------------
 puts "setting up Gemfile for Mongoid..."
-gsub_file 'Gemfile', /gem \'sqlite3-ruby/, '# gem \'sqlite3-ruby'
+gsub_file 'Gemfile', /gem \'sqlite3/, '# gem \'sqlite3-ruby'
 append_file 'Gemfile', "\n# Bundle gems needed for Mongoid\n"
-gem "mongoid", "2.0.0.beta.20"
+gem "mongoid", "2.0.0.rc.7"
 gem 'bson_ext'
 gem 'simple_form'
 gem 'nifty-generators'
@@ -152,15 +157,13 @@ gsub_file 'config/routes.rb', /get \"home\/index\"/, 'root :to => "home#index"'
 #----------------------------------------------------------------------------
 # Finish up
 #----------------------------------------------------------------------------
-puts "checking everything into git..."
-git :add => '.'
-git :commit => "-am 'modified Rails app to use Mongoid'"
-
+if blueprint_flag
 puts "adding blueprint-css in app"
 
 run 'git clone git://github.com/joshuaclayton/blueprint-css.git'
 run 'cp -R blueprint-css/blueprint public/stylesheets/'
 run 'rm -Rf blueprint-css'
+end
 
 if haml_flag
 gsub_file 'app/views/layouts/application.html.haml', /= stylesheet_link_tag "application"/ do
@@ -194,5 +197,9 @@ gsub_file 'app/views/layouts/application.html.erb', /<%= stylesheet_link_tag "ap
 RUBY
 end
 end
+
+puts "checking everything into git..."
+git :add => '.'
+git :commit => "-am 'modified Rails app to use Mongoid'"
 
 puts "Done setting up your Rails app with Mongoid."
