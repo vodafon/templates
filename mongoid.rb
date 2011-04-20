@@ -4,12 +4,6 @@ puts "Modifying a new Rails app to use Mongoid..."
 # Configure
 #----------------------------------------------------------------------------
 
-if yes?('Would you like to use the Haml template system? (yes/no)')
-  haml_flag = true
-else
-  haml_flag = false
-end
-
 if yes?('Would you like to use jQuery instead of Prototype? (yes/no)')
   jquery_flag = true
 else
@@ -54,17 +48,6 @@ gsub_file 'public/robots.txt', /# User-Agent/, 'User-Agent'
 gsub_file 'public/robots.txt', /# Disallow/, 'Disallow'
 
 #----------------------------------------------------------------------------
-# Haml Option
-#----------------------------------------------------------------------------
-if haml_flag
-  puts "setting up Gemfile for Haml..."
-  append_file 'Gemfile', "\n# Bundle gems needed for Haml\n"
-  gem 'haml'
-  gem 'haml-rails', :group => :development
-  # the following gems are used to generate Devise views for Haml
-end
-
-#----------------------------------------------------------------------------
 # jQuery Option
 #----------------------------------------------------------------------------
 if jquery_flag
@@ -77,9 +60,8 @@ end
 puts "setting up Gemfile for Mongoid..."
 gsub_file 'Gemfile', /gem \'sqlite3/, '# gem \'sqlite3-ruby'
 append_file 'Gemfile', "\n# Bundle gems needed for Mongoid\n"
-gem "mongoid", "2.0.0.rc.7"
+gem "mongoid", "2.0.1"
 gem 'bson_ext'
-gem 'simple_form'
 gem 'nifty-generators'
 
 puts "installing Mongoid gems (takes a few minutes!)..."
@@ -89,14 +71,7 @@ puts "creating 'config/mongoid.yml' Mongoid configuration file..."
 run 'rails generate mongoid:config'
 
 puts "creating nifty app layout"
-if haml_flag
-run 'rails generate nifty:layout --haml'
-else
 run 'rails generate nifty:layout'
-end
-
-puts "run simple_form:install"
-run 'rails generate simple_form:install'
 
 puts "modifying 'config/application.rb' file for Mongoid..."
 gsub_file 'config/application.rb', /require 'rails\/all'/ do
@@ -163,27 +138,7 @@ puts "adding blueprint-css in app"
 run 'git clone git://github.com/joshuaclayton/blueprint-css.git'
 run 'cp -R blueprint-css/blueprint public/stylesheets/'
 run 'rm -Rf blueprint-css'
-end
 
-if haml_flag
-gsub_file 'app/views/layouts/application.html.haml', /= stylesheet_link_tag "application"/ do
-<<-RUBY
-       %link{:href => "/stylesheets/blueprint/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
-
-       %link{:href => "/stylesheets/blueprint/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
-
-       %link{:href => "/stylesheets/blueprint/plugins/buttons/screen.css", :rel => "stylesheet", :type => "text/css"}
-
-       %link{:href => "/stylesheets/blueprint/plugins/fancy-type/screen.css", :rel => "stylesheet", :type => "text/css"}
-
-        /[if lt IE 8]
-       %link{:href => "/stylesheets/blueprint/ie.css", :rel => "stylesheet", :type => "text/css"}
-
-    = stylesheet_link_tag "application"
-RUBY
-end
-gsub_file 'app/views/layouts/application.html.haml', '= yield(:title) || "Untitled"', '= content_for?(:title) ? yield(:title) : "Untitled"'
-else
 gsub_file 'app/views/layouts/application.html.erb', /<%= stylesheet_link_tag "application" %>/ do
 <<-RUBY
 <link rel="stylesheet" href="/stylesheets/blueprint/screen.css" type="text/css" media="screen, projection">
